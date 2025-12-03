@@ -1,0 +1,16 @@
+# Backend API
+fastapi==0.115.5
+uvicorn[standard]==0.34.0
+pydantic>=2.0.0
+python-dotenv==1.0.1
+
+# Microsoft Graph
+msal==1.31.1
+requests==2.32.3
+
+# Data handling
+pandas==2.2.3
+openpyxl==3.1.5
+
+# AI Chatbot
+groq==0.14.0
