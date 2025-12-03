@@ -1,0 +1,52 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.4",
+  "body": [
+    {
+      "type": "TextBlock",
+      "size": "Large",
+      "weight": "Bolder",
+      "text": "📦 ¡Llegó un paquete!"
+    },
+    {
+      "type": "TextBlock",
+      "text": "Proveedor: ${proveedor}",
+      "wrap": true
+    },
+    {
+      "type": "TextBlock",
+      "text": "Documento: ${tipoDocumento} ${numeroDocumento}",
+      "wrap": true
+    },
+    {
+      "type": "TextBlock",
+      "text": "Recepción: ${fechaRecepcion} ${horaRecepcion}",
+      "wrap": true
+    },
+    {
+      "type": "TextBlock",
+      "text": "Código de retiro: ${codigoRetiro}",
+      "wrap": true
+    },
+    {
+      "type": "TextBlock",
+      "text": "Retirar en: Recepción ${sucursal}",
+      "wrap": true
+    },
+    {
+      "type": "TextBlock",
+      "text": "Observaciones: ${observaciones}",
+      "wrap": true
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Submit",
+      "title": "Lo pasaré a retirar",
+      "data": {
+        "accion": "confirmar_retiro"
+      }
+    }
+  ]
+}

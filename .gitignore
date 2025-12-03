@@ -1,0 +1,61 @@
+# Variables de entorno con credenciales sensibles
+.env
+backend/.env
+
+# Entorno virtual de Python
+.venv/
+venv/
+env/
+
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Base de datos local (no subir a producción)
+backend/paquetes.db
+backend/*.db
+*.db
+
+# Archivos de distribución
+dist/
+build/
+*.egg-info/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Archivos temporales
+*.tmp
+*.temp
+
+# Archivos de prueba
+test_*.py
+*_test.py
+
+# Datos sensibles
+data/
+*.xlsx
+*.csv
+
+# Cachés
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Streamlit
+.streamlit/secrets.toml
