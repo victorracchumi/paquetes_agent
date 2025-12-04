@@ -542,7 +542,10 @@ def search_users(query: str):
                 )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error buscando usuarios: {e}")
+        import traceback
+        error_detail = traceback.format_exc()
+        print(f"ERROR EN SEARCH-USERS: {error_detail}")
+        raise HTTPException(status_code=500, detail=f"Error buscando usuarios: {str(e)}")
 
 @app.get("/debug-groups")
 def debug_groups():
