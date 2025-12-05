@@ -337,8 +337,10 @@ def register_package(pkg: PackageIn, db: Session = Depends(get_db)):
         db.add(db_package)
         db.commit()
         db.refresh(db_package)
+        print(f"✅ Package saved successfully: ID={db_package.id}, Code={pkg.codigoRetiro}")
     except Exception as e:
         db.rollback()
+        print(f"❌ Error saving package: {e}")
         raise HTTPException(status_code=500, detail=f"Error guardando en base de datos: {e}")
 
     id_simple = f"{db_package.id}-{pkg.codigoRetiro}"

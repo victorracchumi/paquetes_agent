@@ -42,9 +42,11 @@ def get_engine():
     if not DATABASE_URL:
         # Fallback to SQLite for local development
         db_url = "sqlite:///./paquetes.db"
+        print(f"⚠️  WARNING: DATABASE_URL not set, using SQLite: {db_url}")
     else:
         # Fix Railway's postgres:// to postgresql://
         db_url = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+        print(f"✅ Using PostgreSQL: {db_url[:50]}...")
     return create_engine(db_url)
 
 engine = get_engine()
