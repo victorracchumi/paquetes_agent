@@ -1,25 +1,23 @@
-# Backend API for Recepción de Paquetes - v2.0
+# Backend API for Recepción de Paquetes - v3.0 (PostgreSQL)
 import os
 from typing import Optional, Literal
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
+from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
-from openpyxl import load_workbook
 import requests
 import msal
 
 from dotenv import load_dotenv
 from pathlib import Path
+from database import Package, get_db, SessionLocal
 
 # Cargar .env solo si existe (para desarrollo local)
 # En producción (Railway), las variables se inyectan directamente
 env_path = Path(__file__).parent.parent / ".env"
 if env_path.exists():
     load_dotenv(env_path)
-
-# Use /tmp for Railway/cloud, ./data for local
-EXCEL_PATH = os.getenv("EXCEL_PATH", "/tmp/recepcion_paquetes.xlsx" if os.path.exists("/tmp") else "./data/recepcion_paquetes.xlsx")
 
 TENANT_ID = os.getenv("TENANT_ID")
 CLIENT_ID = os.getenv("CLIENT_ID")
@@ -66,29 +64,7 @@ class PackageOut(BaseModel):
     id: str
     estado: str
 
-def ensure_excel_headers(path: str):
-    # The file should exist (created earlier). If not, create it with headers.
-    if not os.path.exists(path) or os.path.getsize(path) == 0:
-        import openpyxl
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.title = "RecepcionLog"
-        headers = [
-            "FechaRecepcion","HoraRecepcion","Sucursal","Recepcionista",
-            "Proveedor","TipoDocumento","NumeroDocumento",
-            "DestinatarioNombre","DestinatarioEmail","MedioNotificacion",
-            "CodigoRetiro","Estado","FechaNotificacion","DestinatarioConfirmo",
-            "FechaRetiro","EntregadoA","Observaciones","AdjuntoUrl"
-        ]
-        ws.append(headers)
-        wb.save(path)
-
-def append_row_to_excel(path: str, values: list):
-    ensure_excel_headers(path)
-    wb = load_workbook(path)
-    ws = wb["RecepcionLog"]
-    ws.append(values)
-    wb.save(path)
+# Excel functions removed - now using PostgreSQL database
 
 def msal_acquire_token() -> Optional[str]:
     if not (TENANT_ID and CLIENT_ID and CLIENT_SECRET):
@@ -259,22 +235,13 @@ def health():
     return {"ok": True}
 
 @app.post("/register", response_model=PackageOut)
-def register_package(pkg: PackageIn):
-    excel_row = [
-        pkg.fechaRecepcion, pkg.horaRecepcion, pkg.sucursal, pkg.recepcionista,
-        pkg.proveedor, pkg.tipoDocumento, pkg.numeroDocumento,
-        pkg.destinatarioNombre, pkg.destinatarioEmail, pkg.medioNotificacion,
-        pkg.codigoRetiro, "Pendiente", "", False,
-        "", "", pkg.observaciones or "", pkg.adjuntoUrl or ""
-    ]
-    try:
-        append_row_to_excel(EXCEL_PATH, excel_row)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error registrando en Excel: {e}")
+def register_package(pkg: PackageIn, db: Session = Depends(get_db)):
+    from datetime import datetime as dt
 
     estado = "Pendiente"
     notified = False
 
+    # Send notifications
     if pkg.medioNotificacion in ("Correo", "Ambos"):
         ok_mail = send_email_graph(
             pkg.destinatarioEmail,
@@ -291,7 +258,39 @@ def register_package(pkg: PackageIn):
     if notified:
         estado = "Notificado"
 
-    id_simple = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{pkg.codigoRetiro}"
+    # Save to database
+    db_package = Package(
+        fecha_recepcion=pkg.fechaRecepcion,
+        hora_recepcion=pkg.horaRecepcion,
+        sucursal=pkg.sucursal,
+        recepcionista=pkg.recepcionista,
+        proveedor=pkg.proveedor,
+        tipo_documento=pkg.tipoDocumento,
+        numero_documento=pkg.numeroDocumento,
+        destinatario_nombre=pkg.destinatarioNombre,
+        destinatario_email=pkg.destinatarioEmail,
+        medio_notificacion=pkg.medioNotificacion,
+        codigo_retiro=pkg.codigoRetiro,
+        estado=estado,
+        fecha_notificacion=dt.utcnow().strftime("%Y-%m-%d %H:%M:%S") if notified else "",
+        destinatario_confirmo="No",
+        fecha_retiro="",
+        entregado_a="",
+        observaciones=pkg.observaciones or "",
+        adjunto_url=pkg.adjuntoUrl or "",
+        monto_cheque=pkg.montoCheque or "",
+        fecha_vencimiento_cheque=pkg.fechaVencimientoCheque or ""
+    )
+
+    try:
+        db.add(db_package)
+        db.commit()
+        db.refresh(db_package)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error guardando en base de datos: {e}")
+
+    id_simple = f"{db_package.id}-{pkg.codigoRetiro}"
     return {"id": id_simple, "estado": estado}
 
 class ReminderRequest(BaseModel):
@@ -371,27 +370,35 @@ def format_reminder_email_html(nombre: str) -> str:
     """
 
 @app.get("/packages")
-def get_packages():
+def get_packages(db: Session = Depends(get_db)):
     """
-    Endpoint para obtener todos los paquetes registrados del Excel.
+    Endpoint para obtener todos los paquetes registrados de la base de datos PostgreSQL.
     """
     try:
-        if not os.path.exists(EXCEL_PATH):
-            return {"packages": []}
-
-        wb = load_workbook(EXCEL_PATH)
-        ws = wb["RecepcionLog"]
+        db_packages = db.query(Package).all()
 
         packages = []
-        headers = [cell.value for cell in ws[1]]
-
-        for row in ws.iter_rows(min_row=2, values_only=True):
-            if row[0]:  # Si tiene fecha de recepción
-                package = {}
-                for i, header in enumerate(headers):
-                    if i < len(row):
-                        package[header] = row[i]
-                packages.append(package)
+        for pkg in db_packages:
+            packages.append({
+                "FechaRecepcion": pkg.fecha_recepcion,
+                "HoraRecepcion": pkg.hora_recepcion,
+                "Sucursal": pkg.sucursal,
+                "Recepcionista": pkg.recepcionista,
+                "Proveedor": pkg.proveedor,
+                "TipoDocumento": pkg.tipo_documento,
+                "NumeroDocumento": pkg.numero_documento,
+                "DestinatarioNombre": pkg.destinatario_nombre,
+                "DestinatarioEmail": pkg.destinatario_email,
+                "MedioNotificacion": pkg.medio_notificacion,
+                "CodigoRetiro": pkg.codigo_retiro,
+                "Estado": pkg.estado,
+                "FechaNotificacion": pkg.fecha_notificacion,
+                "DestinatarioConfirmo": pkg.destinatario_confirmo,
+                "FechaRetiro": pkg.fecha_retiro,
+                "EntregadoA": pkg.entregado_a,
+                "Observaciones": pkg.observaciones,
+                "AdjuntoUrl": pkg.adjunto_url
+            })
 
         return {"packages": packages}
     except Exception as e:
