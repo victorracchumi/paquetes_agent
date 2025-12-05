@@ -408,11 +408,6 @@ st.markdown("""
 with st.sidebar:
     st.header("📊 Panel de Control")
 
-    # Botón de recarga en la parte superior
-    if st.button("🔄 Recargar datos", help="Actualizar desde Excel", use_container_width=True):
-        st.session_state['historial'] = cargar_paquetes_desde_backend()
-        st.rerun()
-
     st.markdown("---")
 
     # Filtrar paquetes del día actual
@@ -679,11 +674,14 @@ if submitted:
             if r.status_code == 200:
                 data = r.json()
 
-                # Guardar en historial
-                st.session_state['historial'].append(payload)
+                # Recargar paquetes desde el backend
+                st.session_state['historial'] = cargar_paquetes_desde_backend()
                 st.session_state['ultimo_registro'] = data
 
-                # Mostrar resumen sin globos ni mensajes de éxito
+                # Mostrar mensaje de éxito
+                st.success(f"✅ Paquete registrado exitosamente con código: **{codigoRetiro}**")
+
+                # Mostrar resumen
                 with st.expander("📋 Ver Detalles del Registro", expanded=True):
                     col1, col2 = st.columns(2)
                     with col1:
@@ -694,6 +692,10 @@ if submitted:
                         st.markdown(f"**📍 Sucursal:** {sucursal}")
                         st.markdown(f"**📄 Documento:** {tipoDocumento} - {numeroDocumento}")
                         st.markdown(f"**🔔 Notificación:** {medioNotificacion}")
+
+                # Botón para ir al Panel de Control
+                if st.button("📊 Ir al Panel de Control", type="primary", use_container_width=True):
+                    st.switch_page("pages/1_📊_Panel_de_Control.py")
             else:
                 st.error(f"❌ Error del backend: {r.status_code} — {r.text}")
         except Exception as e:
