@@ -234,6 +234,42 @@ def format_email_html(pkg: PackageIn) -> str:
 def health():
     return {"ok": True}
 
+@app.get("/debug/database")
+def debug_database(db: Session = Depends(get_db)):
+    """
+    Endpoint de debug para verificar el estado de la base de datos PostgreSQL
+    """
+    try:
+        # Verificar conexión
+        db_packages = db.query(Package).all()
+
+        # Información de la base de datos
+        info = {
+            "database_connected": True,
+            "total_packages": len(db_packages),
+            "table_exists": True,
+            "packages_preview": []
+        }
+
+        # Mostrar primeros 5 paquetes como preview
+        for pkg in db_packages[:5]:
+            info["packages_preview"].append({
+                "id": pkg.id,
+                "codigo": pkg.codigo_retiro,
+                "destinatario": pkg.destinatario_nombre,
+                "fecha": pkg.fecha_recepcion,
+                "hora": pkg.hora_recepcion,
+                "sucursal": pkg.sucursal
+            })
+
+        return info
+    except Exception as e:
+        return {
+            "database_connected": False,
+            "error": str(e),
+            "total_packages": 0
+        }
+
 @app.post("/register", response_model=PackageOut)
 def register_package(pkg: PackageIn, db: Session = Depends(get_db)):
     from datetime import datetime as dt
