@@ -234,6 +234,21 @@ def format_email_html(pkg: PackageIn) -> str:
 def health():
     return {"ok": True}
 
+@app.get("/debug/env")
+def debug_env():
+    """
+    Endpoint para verificar variables de entorno
+    """
+    return {
+        "DATABASE_URL_exists": bool(os.getenv("DATABASE_URL")),
+        "DATABASE_URL_length": len(os.getenv("DATABASE_URL", "")),
+        "DATABASE_URL_prefix": os.getenv("DATABASE_URL", "")[:20] if os.getenv("DATABASE_URL") else "NOT SET",
+        "TENANT_ID_exists": bool(TENANT_ID),
+        "CLIENT_ID_exists": bool(CLIENT_ID),
+        "CLIENT_SECRET_exists": bool(CLIENT_SECRET),
+        "GRAPH_SENDER_UPN": GRAPH_SENDER_UPN
+    }
+
 @app.get("/debug/database")
 def debug_database(db: Session = Depends(get_db)):
     """
