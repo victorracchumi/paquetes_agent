@@ -1,7 +1,7 @@
 import os
 import requests
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 import string
 from chatbot_helper import chatbot_inteligente
@@ -18,6 +18,26 @@ except:
             locale.setlocale(locale.LC_ALL, 'es_MX.UTF-8')
         except:
             pass  # Si falla, usar el locale por defecto
+
+# Función para obtener la hora de Chile
+def get_chile_time():
+    """
+    Retorna la hora actual de Chile (UTC-3 o UTC-4 dependiendo de horario de verano)
+    Chile usa horario de verano desde el primer domingo de septiembre hasta el primer domingo de abril
+    """
+    from datetime import timezone
+    utc_now = datetime.now(timezone.utc)
+
+    # Determinar si estamos en horario de verano (CLT) o normal (CLST)
+    # Aproximación simple: Sep-Marzo = UTC-3, Abr-Ago = UTC-4
+    month = utc_now.month
+    if month >= 9 or month <= 3:  # Septiembre a Marzo
+        offset = timedelta(hours=-3)  # Horario de verano (CLST)
+    else:  # Abril a Agosto
+        offset = timedelta(hours=-4)  # Horario normal (CLT)
+
+    chile_time = utc_now + offset
+    return chile_time.replace(tzinfo=None)  # Remover timezone info para compatibilidad
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
@@ -397,7 +417,7 @@ with st.sidebar:
 
     # Filtrar paquetes del día actual
     from collections import Counter
-    hoy = datetime.now().strftime("%Y-%m-%d")
+    hoy = get_chile_time().strftime("%Y-%m-%d")
     paquetes_hoy = [
         p for p in st.session_state['historial']
         if (p.get('FechaRecepcion') or p.get('fechaRecepcion', '')).startswith(hoy)
@@ -439,7 +459,7 @@ with st.sidebar:
         # Calcular tiempo desde última recepción
         try:
             from datetime import datetime, timedelta
-            hora_actual = datetime.now()
+            hora_actual = get_chile_time()
             hora_recepcion = datetime.strptime(f"{hoy} {hora_ultima}", "%Y-%m-%d %H:%M:%S")
             diferencia = hora_actual - hora_recepcion
             minutos = int(diferencia.total_seconds() / 60)
@@ -628,7 +648,7 @@ if submitted:
         st.stop()
 
     # Generar código de retiro automáticamente
-    now = datetime.now()
+    now = get_chile_time()
     y = str(now.year)[-2:]
     m = f"{now.month:02d}"
     d = f"{now.day:02d}"
@@ -647,8 +667,8 @@ if submitted:
         "observaciones": observaciones,
         "adjuntoUrl": adjuntoUrl,
         "codigoRetiro": codigoRetiro,
-        "fechaRecepcion": datetime.now().strftime("%Y-%m-%d"),
-        "horaRecepcion": datetime.now().strftime("%H:%M:%S"),
+        "fechaRecepcion": get_chile_time().strftime("%Y-%m-%d"),
+        "horaRecepcion": get_chile_time().strftime("%H:%M:%S"),
         "montoCheque": montoCheque,
         "fechaVencimientoCheque": fechaVencimientoCheque,
     }
@@ -804,7 +824,7 @@ with tab3:
 
     # Filtrar solo registros del día actual
     from datetime import datetime
-    hoy = datetime.now().strftime("%Y-%m-%d")
+    hoy = get_chile_time().strftime("%Y-%m-%d")
     registros_hoy = [
         r for r in st.session_state['historial']
         if (r.get('FechaRecepcion') or r.get('fechaRecepcion', '')).startswith(hoy)
@@ -860,7 +880,7 @@ with tab4:
         from collections import Counter
 
         preguntas = []
-        hoy = datetime.now().strftime("%Y-%m-%d")
+        hoy = get_chile_time().strftime("%Y-%m-%d")
 
         # Filtrar paquetes de hoy
         paquetes_hoy = [p for p in historial if (p.get('FechaRecepcion') or p.get('fechaRecepcion', '')).startswith(hoy)]
@@ -877,8 +897,8 @@ with tab4:
 
         # 1. Pregunta sobre paquetes de hoy
         if paquetes_hoy:
-            dia_actual = datetime.now().day
-            mes_actual = datetime.now().strftime("%B").lower()
+            dia_actual = get_chile_time().day
+            mes_actual = get_chile_time().strftime("%B").lower()
             meses_es = {
                 'january': 'enero', 'february': 'febrero', 'march': 'marzo',
                 'april': 'abril', 'may': 'mayo', 'june': 'junio',
@@ -981,7 +1001,7 @@ with tab4:
 
                 # Guardar en historial de chat
                 st.session_state['chat_history'].append({
-                    'timestamp': datetime.now().strftime("%H:%M:%S"),
+                    'timestamp': get_chile_time().strftime("%H:%M:%S"),
                     'pregunta': pregunta_a_procesar,
                     'respuesta': respuesta,
                     'tipo': tipo
