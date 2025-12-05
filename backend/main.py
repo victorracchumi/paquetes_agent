@@ -82,12 +82,15 @@ def append_row_to_excel(path: str, values: list):
 
 def msal_acquire_token() -> Optional[str]:
     if not (TENANT_ID and CLIENT_ID and CLIENT_SECRET):
+        print(f"MSAL ERROR: Missing credentials - TENANT_ID={bool(TENANT_ID)}, CLIENT_ID={bool(CLIENT_ID)}, CLIENT_SECRET={bool(CLIENT_SECRET)}")
         return None
     authority = f"https://login.microsoftonline.com/{TENANT_ID}"
     app_msal = msal.ConfidentialClientApplication(
         CLIENT_ID, authority=authority, client_credential=CLIENT_SECRET
     )
     result = app_msal.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
+    if "access_token" not in result:
+        print(f"MSAL ERROR: No access token in result. Full response: {result}")
     return result.get("access_token")
 
 def send_email_graph(to_email: str, subject: str, html_body: str) -> bool:
