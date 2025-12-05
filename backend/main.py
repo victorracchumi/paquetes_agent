@@ -12,9 +12,11 @@ import msal
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Cargar .env desde la raíz del proyecto (un nivel arriba de backend/)
+# Cargar .env solo si existe (para desarrollo local)
+# En producción (Railway), las variables se inyectan directamente
 env_path = Path(__file__).parent.parent / ".env"
-load_dotenv(env_path)
+if env_path.exists():
+    load_dotenv(env_path)
 
 EXCEL_PATH = os.getenv("EXCEL_PATH", "./data/recepcion_paquetes.xlsx")
 
