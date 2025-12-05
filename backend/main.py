@@ -25,6 +25,13 @@ CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 GRAPH_SENDER_UPN = os.getenv("GRAPH_SENDER_UPN")
 
+# Debug: Print environment variables on startup
+print(f"ENV DEBUG - TENANT_ID exists: {bool(TENANT_ID)}, length: {len(TENANT_ID) if TENANT_ID else 0}")
+print(f"ENV DEBUG - CLIENT_ID exists: {bool(CLIENT_ID)}, length: {len(CLIENT_ID) if CLIENT_ID else 0}")
+print(f"ENV DEBUG - CLIENT_SECRET exists: {bool(CLIENT_SECRET)}, length: {len(CLIENT_SECRET) if CLIENT_SECRET else 0}")
+print(f"ENV DEBUG - GRAPH_SENDER_UPN exists: {bool(GRAPH_SENDER_UPN)}, value: {GRAPH_SENDER_UPN}")
+print(f"ENV DEBUG - All env vars: {list(os.environ.keys())}")
+
 TEAMS_WEBHOOK_URL = os.getenv("TEAMS_WEBHOOK_URL", "")  # optional channel notification
 
 app = FastAPI(title="Recepción de Paquetes — Backend", version="0.1.0")
