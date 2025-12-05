@@ -18,7 +18,8 @@ env_path = Path(__file__).parent.parent / ".env"
 if env_path.exists():
     load_dotenv(env_path)
 
-EXCEL_PATH = os.getenv("EXCEL_PATH", "./data/recepcion_paquetes.xlsx")
+# Use /tmp for Railway/cloud, ./data for local
+EXCEL_PATH = os.getenv("EXCEL_PATH", "/tmp/recepcion_paquetes.xlsx" if os.path.exists("/tmp") else "./data/recepcion_paquetes.xlsx")
 
 TENANT_ID = os.getenv("TENANT_ID")
 CLIENT_ID = os.getenv("CLIENT_ID")
