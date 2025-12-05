@@ -10,8 +10,11 @@ from typing import List, Dict, Optional, Tuple
 from groq import Groq
 
 # Configurar cliente Groq
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "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")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+
+if not GROQ_API_KEY:
+    raise ValueError("GROQ_API_KEY environment variable is required")
 
 
 def get_field(pkg: Dict, field_name: str, default='') -> str:
