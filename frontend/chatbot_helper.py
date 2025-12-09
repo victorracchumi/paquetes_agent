@@ -177,29 +177,50 @@ def chatbot_reglas(pregunta: str, historial: List[Dict]) -> Optional[str]:
         import re
         from datetime import datetime
 
-        # Buscar patrones de fecha
-        # "1 de diciembre" o "1 diciembre" o "diciembre 1"
-        meses = {
-            'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04',
-            'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08',
-            'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12'
-        }
-
         fecha_encontrada = None
-        for mes_nombre, mes_num in meses.items():
-            if mes_nombre in pregunta_lower:
-                # Buscar día (número antes o después del mes)
-                match = re.search(r'(\d{1,2})\s+(?:de\s+)?' + mes_nombre, pregunta_lower)
-                if not match:
-                    match = re.search(mes_nombre + r'\s+(\d{1,2})', pregunta_lower)
 
-                if match:
-                    dia = match.group(1).zfill(2)
-                    # Buscar año (si no está, usar 2025)
-                    year_match = re.search(r'20\d{2}', pregunta_lower)
-                    anio = year_match.group(0) if year_match else '2025'
-                    fecha_encontrada = f"{anio}-{mes_num}-{dia}"
-                    break
+        # Primero intentar buscar formato numérico: DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD
+        # Formato DD/MM/YYYY o DD-MM-YYYY
+        match_ddmmyyyy = re.search(r'(\d{1,2})[/-](\d{1,2})[/-](\d{4})', pregunta_lower)
+        if match_ddmmyyyy:
+            dia = match_ddmmyyyy.group(1).zfill(2)
+            mes = match_ddmmyyyy.group(2).zfill(2)
+            anio = match_ddmmyyyy.group(3)
+            fecha_encontrada = f"{anio}-{mes}-{dia}"
+
+        # Formato YYYY-MM-DD o YYYY/MM/DD
+        if not fecha_encontrada:
+            match_yyyymmdd = re.search(r'(\d{4})[/-](\d{1,2})[/-](\d{1,2})', pregunta_lower)
+            if match_yyyymmdd:
+                anio = match_yyyymmdd.group(1)
+                mes = match_yyyymmdd.group(2).zfill(2)
+                dia = match_yyyymmdd.group(3).zfill(2)
+                fecha_encontrada = f"{anio}-{mes}-{dia}"
+
+        # Si no se encontró formato numérico, buscar formato con nombre de mes
+        if not fecha_encontrada:
+            # Buscar patrones de fecha
+            # "1 de diciembre" o "1 diciembre" o "diciembre 1"
+            meses = {
+                'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04',
+                'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08',
+                'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12'
+            }
+
+            for mes_nombre, mes_num in meses.items():
+                if mes_nombre in pregunta_lower:
+                    # Buscar día (número antes o después del mes)
+                    match = re.search(r'(\d{1,2})\s+(?:de\s+)?' + mes_nombre, pregunta_lower)
+                    if not match:
+                        match = re.search(mes_nombre + r'\s+(\d{1,2})', pregunta_lower)
+
+                    if match:
+                        dia = match.group(1).zfill(2)
+                        # Buscar año (si no está, usar 2025)
+                        year_match = re.search(r'20\d{2}', pregunta_lower)
+                        anio = year_match.group(0) if year_match else '2025'
+                        fecha_encontrada = f"{anio}-{mes_num}-{dia}"
+                        break
 
         if fecha_encontrada:
             # Buscar paquetes de esa fecha
