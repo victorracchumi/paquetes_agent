@@ -354,6 +354,21 @@ st.markdown("""
         border-color: rgba(99, 102, 241, 0.3);
     }
 
+    /* Contenido del expander con fondo oscuro */
+    .streamlit-expanderContent {
+        background: rgba(15, 23, 42, 0.5) !important;
+        border: 1px solid rgba(99, 102, 241, 0.1);
+        border-top: none;
+        border-radius: 0 0 10px 10px !important;
+        padding: 1.5rem !important;
+        color: var(--text-secondary) !important;
+    }
+
+    /* Asegurar que el contenido dentro del expander también sea oscuro */
+    .streamlit-expanderContent > div {
+        background: transparent !important;
+    }
+
     /* Animación de carga */
     .stSpinner > div {
         border-color: var(--primary-color) transparent transparent transparent !important;
