@@ -690,21 +690,23 @@ if submitted:
                 # Mostrar mensaje de éxito
                 st.success(f"✅ Paquete registrado exitosamente con código: **{codigoRetiro}**")
 
-                # Mostrar resumen
-                with st.expander("📋 Ver Detalles del Registro", expanded=True):
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.markdown(f"**🎫 Código:** `{codigoRetiro}`")
-                        st.markdown(f"**👤 Destinatario:** {destinatarioNombre}")
-                        st.markdown(f"**📧 Email:** {destinatarioEmail}")
-                    with col2:
-                        st.markdown(f"**📍 Sucursal:** {sucursal}")
-                        st.markdown(f"**📄 Documento:** {tipoDocumento} - {numeroDocumento}")
-                        st.markdown(f"**🔔 Notificación:** {medioNotificacion}")
+                # Mostrar resumen del paquete registrado
+                st.markdown("---")
+                st.markdown("### 📦 Paquete Registrado")
 
-                # Botón para ir al Panel de Control
-                if st.button("📊 Ir al Panel de Control", type="primary", use_container_width=True):
-                    st.switch_page("pages/1_📊_Panel_de_Control.py")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown(f"**🎫 Código:** `{codigoRetiro}`")
+                    st.markdown(f"**👤 Destinatario:** {destinatarioNombre}")
+                    st.markdown(f"**📧 Email:** {destinatarioEmail}")
+                    st.markdown(f"**📍 Sucursal:** {sucursal}")
+                with col2:
+                    st.markdown(f"**📄 Tipo Doc:** {tipoDocumento}")
+                    st.markdown(f"**🔢 Nº Doc:** {numeroDocumento}")
+                    st.markdown(f"**🔔 Notificación:** {medioNotificacion}")
+                    st.markdown(f"**⏰ Registrado:** {get_chile_time().strftime('%H:%M:%S')}")
+
+                st.info("💡 Ve a la pestaña **📈 Historial** para ver todos los paquetes del día y marcar como retirado cuando corresponda.")
             else:
                 st.error(f"❌ Error del backend: {r.status_code} — {r.text}")
         except Exception as e:
