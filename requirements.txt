@@ -9,9 +9,12 @@ python-dotenv==1.0.1
 # Si usas PostgreSQL, descomenta:
 # psycopg2-binary==2.9.9
 
-# Microsoft Graph
+# Microsoft Graph & Authentication
 msal==1.31.1
 requests==2.32.3
+streamlit-authenticator==0.3.3
+PyJWT==2.9.0
+cryptography==44.0.0
 
 # Data handling (para Excel si lo usas)
 pandas==2.2.3

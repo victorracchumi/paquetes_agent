@@ -6,6 +6,7 @@ import random
 import string
 from chatbot_helper import chatbot_inteligente
 import locale
+from auth import is_authenticated, get_current_user, logout
 
 # Configurar locale para español
 try:
@@ -64,6 +65,16 @@ if 'datos_cargados' not in st.session_state:
     st.session_state['datos_cargados'] = True
 
 st.set_page_config(page_title="Recepción de Paquetes", page_icon="📦", layout="wide")
+
+# Check authentication - redirect to login if not authenticated
+if not is_authenticated():
+    st.warning("⚠️ Debes iniciar sesión para acceder al sistema")
+    st.info("Redirigiendo a la página de login...")
+    st.switch_page("login.py")
+    st.stop()
+
+# Get current user info
+current_user = get_current_user()
 
 # CSS Personalizado Profesional - Tema Oscuro Mejorado
 st.markdown("""
@@ -464,6 +475,16 @@ st.markdown("""
 
 # Sidebar con información y estadísticas
 with st.sidebar:
+    # User info and logout
+    st.markdown(f"### 👤 {current_user.get('name', 'Usuario')}")
+    st.caption(f"📧 {current_user.get('email', '')}")
+
+    if st.button("🚪 Cerrar Sesión", use_container_width=True):
+        logout()
+        st.rerun()
+
+    st.markdown("---")
+
     st.header("📊 Panel de Control")
 
     st.markdown("---")
