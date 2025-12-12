@@ -34,7 +34,7 @@ st.markdown("---")
 
 if st.button("🚪 Cerrar Sesión", use_container_width=True):
     logout()
-    st.switch_page("login.py")
+    st.switch_page("app.py")
 
 st.markdown("---")
 st.info("✅ La autenticación con Microsoft está funcionando correctamente!")
