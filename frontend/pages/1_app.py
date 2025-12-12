@@ -12,7 +12,7 @@ st.set_page_config(page_title="Recepción de Paquetes", page_icon="📦", layout
 if not is_authenticated():
     st.warning("⚠️ Debes iniciar sesión para acceder al sistema")
     st.info("Redirigiendo a la página de login...")
-    st.switch_page("login.py")
+    st.switch_page("app.py")
     st.stop()
 
 # Get current user
