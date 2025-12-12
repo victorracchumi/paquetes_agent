@@ -90,6 +90,9 @@ query_params = st.query_params
 if "code" in query_params:
     code = query_params["code"]
 
+    # Clear query params to prevent reuse
+    st.query_params.clear()
+
     with st.spinner("🔄 Autenticando..."):
         try:
             # Exchange code for token
@@ -108,11 +111,7 @@ if "code" in query_params:
                     }
                     st.session_state['authenticated'] = True
 
-                    st.success(f"✅ Bienvenido, {user_info.get('displayName')}!")
-                    st.balloons()
-
-                    # Redirect to dashboard
-                    st.info("Redirigiendo a la aplicación...")
+                    # Redirect to dashboard immediately
                     st.switch_page("pages/Dashboard.py")
                 else:
                     st.error("❌ Error al obtener información del usuario")
