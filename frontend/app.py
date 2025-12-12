@@ -418,8 +418,17 @@ with st.sidebar:
         if (p.get('FechaRecepcion') or p.get('fechaRecepcion', '')).startswith(hoy)
     ]
 
-    # Métrica principal
-    st.metric("📦 Paquetes Hoy", len(paquetes_hoy), delta=None)
+    # Métricas principales
+    pendientes_hoy = [p for p in paquetes_hoy if (p.get('Estado') or p.get('estado', 'Pendiente')) != "Retirado"]
+    retirados_hoy = [p for p in paquetes_hoy if (p.get('Estado') or p.get('estado', 'Pendiente')) == "Retirado"]
+
+    col_met1, col_met2, col_met3 = st.columns(3)
+    with col_met1:
+        st.metric("📦 Total Hoy", len(paquetes_hoy))
+    with col_met2:
+        st.metric("⏳ Pendientes", len(pendientes_hoy), delta=None, delta_color="off")
+    with col_met3:
+        st.metric("✅ Retirados", len(retirados_hoy), delta=None, delta_color="normal")
 
     if paquetes_hoy:
         st.markdown("---")
@@ -849,7 +858,18 @@ with tab3:
             notif = registro.get('MedioNotificacion') or registro.get('medioNotificacion', 'N/A')
             obs = registro.get('Observaciones') or registro.get('observaciones', '')
 
-            with st.expander(f"#{len(registros_hoy) - i + 1} - {codigo} | {destinatario}", expanded=False):
+            # Obtener estado del paquete
+            estado = registro.get('Estado') or registro.get('estado', 'Pendiente')
+            fecha_retiro = registro.get('FechaRetiro') or registro.get('fechaRetiro', '')
+            entregado_a = registro.get('EntregadoA') or registro.get('entregadoA', '')
+
+            # Color del expander según estado
+            estado_emoji = "✅" if estado == "Retirado" else "📦"
+            titulo_expander = f"{estado_emoji} #{len(registros_hoy) - i + 1} - {codigo} | {destinatario}"
+            if estado == "Retirado":
+                titulo_expander += f" (RETIRADO)"
+
+            with st.expander(titulo_expander, expanded=False):
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     st.markdown(f"**📍 Sucursal:** {sucursal}")
@@ -866,6 +886,60 @@ with tab3:
 
                 if obs:
                     st.markdown(f"**📝 Observaciones:** {obs}")
+
+                # Sección de retiro
+                st.markdown("---")
+                if estado == "Retirado":
+                    st.success(f"✅ **Paquete Retirado**")
+                    st.markdown(f"**📅 Fecha de Retiro:** {fecha_retiro}")
+                    st.markdown(f"**👤 Retirado por:** {entregado_a}")
+                else:
+                    st.info("📦 **Paquete Pendiente de Retiro**")
+
+                    # Formulario para marcar como retirado
+                    with st.form(key=f"form_retiro_{codigo}"):
+                        nombre_retira = st.text_input(
+                            "Nombre de quien retira",
+                            placeholder="Ej: Juan Pérez",
+                            key=f"nombre_retira_{codigo}"
+                        )
+
+                        col_btn1, col_btn2 = st.columns([1, 1])
+                        with col_btn1:
+                            submit_retiro = st.form_submit_button(
+                                "✅ Marcar como Retirado",
+                                type="primary",
+                                use_container_width=True
+                            )
+
+                        if submit_retiro:
+                            if nombre_retira and len(nombre_retira.strip()) > 0:
+                                try:
+                                    # Llamar al endpoint de retiro
+                                    response = requests.post(
+                                        f"{BACKEND_URL}/withdraw",
+                                        json={
+                                            "codigo_retiro": codigo,
+                                            "entregado_a": nombre_retira.strip()
+                                        },
+                                        timeout=5
+                                    )
+
+                                    if response.status_code == 200:
+                                        result = response.json()
+                                        if result.get('success'):
+                                            st.success(f"✅ {result.get('message')}")
+                                            # Recargar datos
+                                            st.session_state['historial'] = cargar_paquetes_desde_backend()
+                                            st.rerun()
+                                        else:
+                                            st.warning(f"⚠️ {result.get('message')}")
+                                    else:
+                                        st.error(f"❌ Error: {response.status_code}")
+                                except Exception as e:
+                                    st.error(f"❌ Error al marcar como retirado: {e}")
+                            else:
+                                st.error("⚠️ Ingrese el nombre de quien retira el paquete")
 
     else:
         st.markdown("📭 No hay registros del día de hoy")

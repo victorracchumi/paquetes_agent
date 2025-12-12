@@ -477,6 +477,61 @@ def send_reminder(req: ReminderRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error enviando recordatorio: {e}")
 
+class WithdrawRequest(BaseModel):
+    codigo_retiro: str
+    entregado_a: str
+
+@app.post("/withdraw")
+def withdraw_package(req: WithdrawRequest, db: Session = Depends(get_db)):
+    """
+    Endpoint para marcar un paquete como retirado.
+    Actualiza el estado a "Retirado" y registra quién lo retiró y cuándo.
+    """
+    from datetime import datetime as dt
+
+    try:
+        # Buscar el paquete por código de retiro
+        package = db.query(Package).filter(Package.codigo_retiro == req.codigo_retiro).first()
+
+        if not package:
+            raise HTTPException(status_code=404, detail=f"Paquete con código {req.codigo_retiro} no encontrado")
+
+        # Verificar que no esté ya retirado
+        if package.estado == "Retirado":
+            return {
+                "success": False,
+                "message": f"El paquete ya fue retirado el {package.fecha_retiro} por {package.entregado_a}"
+            }
+
+        # Actualizar el paquete
+        package.estado = "Retirado"
+        package.fecha_retiro = dt.now().strftime("%Y-%m-%d %H:%M:%S")
+        package.entregado_a = req.entregado_a
+
+        db.commit()
+        db.refresh(package)
+
+        print(f"✅ Package withdrawn: Code={req.codigo_retiro}, By={req.entregado_a}")
+
+        return {
+            "success": True,
+            "message": f"Paquete {req.codigo_retiro} marcado como retirado",
+            "package": {
+                "codigo": package.codigo_retiro,
+                "destinatario": package.destinatario_nombre,
+                "fecha_retiro": package.fecha_retiro,
+                "entregado_a": package.entregado_a,
+                "estado": package.estado
+            }
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        print(f"❌ Error withdrawing package: {e}")
+        raise HTTPException(status_code=500, detail=f"Error marcando paquete como retirado: {e}")
+
 @app.get("/search-users")
 def search_users(query: str):
     """
