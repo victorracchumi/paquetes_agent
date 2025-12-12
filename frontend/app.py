@@ -355,8 +355,10 @@ st.markdown("""
     }
 
     /* Contenido del expander con fondo oscuro */
-    .streamlit-expanderContent {
-        background: rgba(15, 23, 42, 0.5) !important;
+    .streamlit-expanderContent,
+    [data-testid="stExpander"] > div:last-child,
+    [data-testid="stExpanderDetails"] {
+        background: rgba(15, 23, 42, 0.8) !important;
         border: 1px solid rgba(99, 102, 241, 0.1);
         border-top: none;
         border-radius: 0 0 10px 10px !important;
@@ -364,9 +366,29 @@ st.markdown("""
         color: var(--text-secondary) !important;
     }
 
-    /* Asegurar que el contenido dentro del expander también sea oscuro */
-    .streamlit-expanderContent > div {
+    /* Asegurar que todo el contenido dentro del expander sea oscuro */
+    .streamlit-expanderContent > div,
+    [data-testid="stExpander"] > div:last-child > div,
+    [data-testid="stExpanderDetails"] > div {
         background: transparent !important;
+    }
+
+    /* Forzar fondo oscuro en todos los elementos del expander */
+    [data-testid="stExpander"] {
+        background: transparent !important;
+    }
+
+    /* Columnas dentro de expanders también deben ser oscuras */
+    [data-testid="stExpander"] [data-testid="column"],
+    [data-testid="stExpander"] [data-testid="stVerticalBlock"],
+    [data-testid="stExpander"] [data-testid="stHorizontalBlock"] {
+        background: transparent !important;
+    }
+
+    /* Éxito/Info boxes dentro de expanders */
+    [data-testid="stExpander"] .stAlert {
+        background: rgba(99, 102, 241, 0.1) !important;
+        border-color: rgba(99, 102, 241, 0.3) !important;
     }
 
     /* Animación de carga */
