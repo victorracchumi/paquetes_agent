@@ -20,6 +20,7 @@ openpyxl==3.1.5
 # Frontend
 streamlit==1.40.2
 Pillow==11.0.0
+plotly==5.18.0
 
 # AI Chatbot
 groq==0.14.0

@@ -523,7 +523,7 @@ with st.sidebar:
         st.caption("Registra el primer paquete del día en la pestaña **📝 Nuevo Registro**")
 
 # Tabs para mejor organización
-tab1, tab2, tab3, tab4 = st.tabs(["📝 Nuevo Registro", "🔍 Consultar", "📈 Historial", "💬 Chatbot IA"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["📝 Nuevo Registro", "🔍 Consultar", "📈 Historial", "📊 Reportes", "💬 Chatbot IA"])
 
 with tab1:
     # Buscador de usuarios FUERA del formulario
@@ -986,6 +986,197 @@ with tab3:
             st.caption(f"💡 Hay {len(st.session_state['historial'])} registros de días anteriores")
 
 with tab4:
+    st.subheader("📊 Dashboard de Reportes y Estadísticas")
+
+    import pandas as pd
+    import plotly.express as px
+    import plotly.graph_objects as go
+    from datetime import datetime, timedelta
+    from collections import Counter
+    from io import BytesIO
+
+    # Crear DataFrame de todos los paquetes
+    if st.session_state['historial']:
+        df = pd.DataFrame(st.session_state['historial'])
+
+        # Normalizar nombres de columnas (compatibilidad frontend/backend)
+        if 'FechaRecepcion' in df.columns and 'fechaRecepcion' not in df.columns:
+            df['fechaRecepcion'] = df['FechaRecepcion']
+        if 'fechaRecepcion' in df.columns and 'FechaRecepcion' not in df.columns:
+            df['FechaRecepcion'] = df['fechaRecepcion']
+
+        # Convertir fechas
+        df['fecha'] = pd.to_datetime(df['fechaRecepcion'] if 'fechaRecepcion' in df.columns else df['FechaRecepcion'], errors='coerce')
+        df['estado'] = df.get('Estado', df.get('estado', 'Pendiente'))
+        df['sucursal'] = df.get('Sucursal', df.get('sucursal', 'N/A'))
+        df['tipoDoc'] = df.get('TipoDocumento', df.get('tipoDocumento', 'N/A'))
+
+        # Filtros
+        st.markdown("### 🔍 Filtros")
+        col_f1, col_f2, col_f3 = st.columns(3)
+
+        with col_f1:
+            fecha_desde = st.date_input("Desde", value=datetime.now() - timedelta(days=30))
+        with col_f2:
+            fecha_hasta = st.date_input("Hasta", value=datetime.now())
+        with col_f3:
+            sucursal_filtro = st.multiselect("Sucursal", options=df['sucursal'].unique().tolist(), default=df['sucursal'].unique().tolist())
+
+        # Aplicar filtros
+        df_filtrado = df[
+            (df['fecha'] >= pd.Timestamp(fecha_desde)) &
+            (df['fecha'] <= pd.Timestamp(fecha_hasta)) &
+            (df['sucursal'].isin(sucursal_filtro))
+        ]
+
+        st.markdown("---")
+
+        # Métricas principales
+        st.markdown("### 📈 Métricas Clave")
+        col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+
+        total_paquetes = len(df_filtrado)
+        pendientes = len(df_filtrado[df_filtrado['estado'] != 'Retirado'])
+        retirados = len(df_filtrado[df_filtrado['estado'] == 'Retirado'])
+        tasa_retiro = (retirados / total_paquetes * 100) if total_paquetes > 0 else 0
+
+        with col_m1:
+            st.metric("📦 Total Paquetes", total_paquetes)
+        with col_m2:
+            st.metric("⏳ Pendientes", pendientes)
+        with col_m3:
+            st.metric("✅ Retirados", retirados)
+        with col_m4:
+            st.metric("📊 Tasa de Retiro", f"{tasa_retiro:.1f}%")
+
+        st.markdown("---")
+
+        # Gráficos
+        col_g1, col_g2 = st.columns(2)
+
+        with col_g1:
+            st.markdown("#### 📅 Paquetes por Día")
+            # Agrupar por fecha
+            paquetes_por_dia = df_filtrado.groupby(df_filtrado['fecha'].dt.date).size().reset_index()
+            paquetes_por_dia.columns = ['Fecha', 'Cantidad']
+
+            fig_linea = px.line(paquetes_por_dia, x='Fecha', y='Cantidad',
+                               markers=True,
+                               title="")
+            fig_linea.update_traces(line_color='#6366f1', marker=dict(size=8))
+            fig_linea.update_layout(
+                plot_bgcolor='rgba(15, 23, 42, 0.8)',
+                paper_bgcolor='rgba(15, 23, 42, 0.8)',
+                font_color='#cbd5e1',
+                xaxis=dict(gridcolor='rgba(99, 102, 241, 0.1)'),
+                yaxis=dict(gridcolor='rgba(99, 102, 241, 0.1)')
+            )
+            st.plotly_chart(fig_linea, use_container_width=True)
+
+        with col_g2:
+            st.markdown("#### 📍 Por Sucursal")
+            sucursal_counts = df_filtrado['sucursal'].value_counts().reset_index()
+            sucursal_counts.columns = ['Sucursal', 'Cantidad']
+
+            fig_pie = px.pie(sucursal_counts, values='Cantidad', names='Sucursal',
+                            title="",
+                            color_discrete_sequence=px.colors.sequential.Blues_r)
+            fig_pie.update_layout(
+                plot_bgcolor='rgba(15, 23, 42, 0.8)',
+                paper_bgcolor='rgba(15, 23, 42, 0.8)',
+                font_color='#cbd5e1'
+            )
+            st.plotly_chart(fig_pie, use_container_width=True)
+
+        # Segunda fila de gráficos
+        col_g3, col_g4 = st.columns(2)
+
+        with col_g3:
+            st.markdown("#### 📄 Por Tipo de Documento")
+            tipo_counts = df_filtrado['tipoDoc'].value_counts().reset_index()
+            tipo_counts.columns = ['Tipo', 'Cantidad']
+
+            fig_bar = px.bar(tipo_counts, x='Tipo', y='Cantidad',
+                           title="",
+                           color='Cantidad',
+                           color_continuous_scale='Blues')
+            fig_bar.update_layout(
+                plot_bgcolor='rgba(15, 23, 42, 0.8)',
+                paper_bgcolor='rgba(15, 23, 42, 0.8)',
+                font_color='#cbd5e1',
+                xaxis=dict(gridcolor='rgba(99, 102, 241, 0.1)'),
+                yaxis=dict(gridcolor='rgba(99, 102, 241, 0.1)'),
+                showlegend=False
+            )
+            st.plotly_chart(fig_bar, use_container_width=True)
+
+        with col_g4:
+            st.markdown("#### 📊 Estado de Paquetes")
+            estado_counts = df_filtrado['estado'].value_counts().reset_index()
+            estado_counts.columns = ['Estado', 'Cantidad']
+
+            fig_donut = px.pie(estado_counts, values='Cantidad', names='Estado',
+                              title="",
+                              hole=0.4,
+                              color_discrete_map={'Pendiente': '#fbbf24', 'Notificado': '#60a5fa', 'Retirado': '#34d399'})
+            fig_donut.update_layout(
+                plot_bgcolor='rgba(15, 23, 42, 0.8)',
+                paper_bgcolor='rgba(15, 23, 42, 0.8)',
+                font_color='#cbd5e1'
+            )
+            st.plotly_chart(fig_donut, use_container_width=True)
+
+        st.markdown("---")
+
+        # Top 5s
+        col_t1, col_t2 = st.columns(2)
+
+        with col_t1:
+            st.markdown("#### 🏆 Top 5 Destinatarios")
+            destinatarios = df_filtrado.get('DestinatarioNombre', df_filtrado.get('destinatarioNombre', pd.Series(dtype=str)))
+            if not destinatarios.empty:
+                top_dest = destinatarios.value_counts().head(5)
+                for i, (nombre, count) in enumerate(top_dest.items(), 1):
+                    st.markdown(f"{i}. **{nombre}**: {count} paquetes")
+
+        with col_t2:
+            st.markdown("#### 📦 Top 5 Proveedores")
+            proveedores = df_filtrado.get('Proveedor', df_filtrado.get('proveedor', pd.Series(dtype=str)))
+            if not proveedores.empty:
+                top_prov = proveedores.value_counts().head(5)
+                for i, (nombre, count) in enumerate(top_prov.items(), 1):
+                    st.markdown(f"{i}. **{nombre}**: {count} paquetes")
+
+        st.markdown("---")
+
+        # Exportar a Excel
+        st.markdown("### 📥 Exportar Datos")
+
+        col_e1, col_e2 = st.columns([3, 1])
+        with col_e1:
+            st.markdown("Descarga todos los paquetes filtrados en formato Excel")
+        with col_e2:
+            # Preparar datos para exportar
+            df_export = df_filtrado[[c for c in df_filtrado.columns if c not in ['fecha', 'estado', 'sucursal', 'tipoDoc']]].copy()
+
+            # Crear Excel en memoria
+            output = BytesIO()
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                df_export.to_excel(writer, index=False, sheet_name='Paquetes')
+            output.seek(0)
+
+            st.download_button(
+                label="📥 Descargar Excel",
+                data=output.getvalue(),
+                file_name=f"paquetes_{fecha_desde}_{fecha_hasta}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True
+            )
+
+    else:
+        st.info("📭 No hay datos para mostrar. Registra algunos paquetes primero.")
+
+with tab5:
     st.subheader("💬 Asistente Virtual Inteligente")
 
     # Generar preguntas sugeridas dinámicas basadas en los datos del día
