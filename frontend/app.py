@@ -966,18 +966,73 @@ with tab2:
             st.error("⚠️ Ingrese un código de retiro")
 
 with tab3:
-    st.subheader("📈 Historial de Registros del Día")
+    st.subheader("📈 Historial de Registros")
 
-    # Filtrar solo registros del día actual
-    from datetime import datetime
+    # Buscador de paquetes
+    col_buscar, col_filtro = st.columns([3, 1])
+    with col_buscar:
+        busqueda_historial = st.text_input(
+            "🔍 Buscar paquete",
+            placeholder="Código, destinatario, documento...",
+            key="busqueda_historial",
+            help="Busca en todo el historial, no solo del día"
+        )
+    with col_filtro:
+        filtro_dia = st.selectbox(
+            "Mostrar",
+            ["Solo hoy", "Últimos 7 días", "Últimos 30 días", "Todos"],
+            key="filtro_historial"
+        )
+
+    # Aplicar filtros
+    from datetime import datetime, timedelta
     hoy = get_chile_time().strftime("%Y-%m-%d")
-    registros_hoy = [
-        r for r in st.session_state['historial']
-        if (r.get('FechaRecepcion') or r.get('fechaRecepcion', '')).startswith(hoy)
-    ]
+
+    # Filtrar por fecha según selección
+    if filtro_dia == "Solo hoy":
+        registros_filtrados = [
+            r for r in st.session_state['historial']
+            if (r.get('FechaRecepcion') or r.get('fechaRecepcion', '')).startswith(hoy)
+        ]
+    elif filtro_dia == "Últimos 7 días":
+        hace_7_dias = (get_chile_time() - timedelta(days=7)).strftime("%Y-%m-%d")
+        registros_filtrados = [
+            r for r in st.session_state['historial']
+            if (r.get('FechaRecepcion') or r.get('fechaRecepcion', '')) >= hace_7_dias
+        ]
+    elif filtro_dia == "Últimos 30 días":
+        hace_30_dias = (get_chile_time() - timedelta(days=30)).strftime("%Y-%m-%d")
+        registros_filtrados = [
+            r for r in st.session_state['historial']
+            if (r.get('FechaRecepcion') or r.get('fechaRecepcion', '')) >= hace_30_dias
+        ]
+    else:  # Todos
+        registros_filtrados = st.session_state['historial']
+
+    # Aplicar búsqueda si hay texto
+    if busqueda_historial and len(busqueda_historial) >= 2:
+        busqueda_lower = busqueda_historial.lower()
+        registros_hoy = []
+        for r in registros_filtrados:
+            codigo = (r.get('CodigoRetiro') or r.get('codigoRetiro', '')).lower()
+            destinatario = (r.get('DestinatarioNombre') or r.get('destinatarioNombre', '')).lower()
+            numero_doc = (r.get('NumeroDocumento') or r.get('numeroDocumento', '')).lower()
+
+            if (busqueda_lower in codigo or
+                busqueda_lower in destinatario or
+                busqueda_lower in numero_doc):
+                registros_hoy.append(r)
+    else:
+        registros_hoy = registros_filtrados
 
     if registros_hoy:
-        st.metric("📦 Registros de Hoy", len(registros_hoy))
+        # Mensaje dinámico según filtros
+        if busqueda_historial:
+            st.metric("📦 Resultados de búsqueda", len(registros_hoy))
+        elif filtro_dia == "Solo hoy":
+            st.metric("📦 Registros de Hoy", len(registros_hoy))
+        else:
+            st.metric(f"📦 Registros ({filtro_dia})", len(registros_hoy))
 
         for i, registro in enumerate(reversed(registros_hoy), 1):
             # Obtener valores con compatibilidad de nombres (Excel vs Frontend)
