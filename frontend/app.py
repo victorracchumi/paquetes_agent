@@ -298,6 +298,27 @@ st.markdown("""
         border: none !important;
     }
 
+    /* Warning boxes */
+    .stWarning {
+        background: rgba(251, 191, 36, 0.15) !important;
+        border-left-color: #fbbf24 !important;
+        color: var(--text-secondary) !important;
+    }
+
+    .stWarning > div {
+        border: none !important;
+    }
+
+    /* Alertas y cajas de éxito dentro del sidebar - fondo oscuro */
+    [data-testid="stSidebar"] .stAlert,
+    [data-testid="stSidebar"] .stSuccess,
+    [data-testid="stSidebar"] .stWarning,
+    [data-testid="stSidebar"] .stError,
+    [data-testid="stSidebar"] .stInfo {
+        background: rgba(15, 23, 42, 0.8) !important;
+        border: 1px solid rgba(99, 102, 241, 0.2) !important;
+    }
+
     /* Sidebar moderno */
     [data-testid="stSidebar"] {
         background: var(--bg-dark);
