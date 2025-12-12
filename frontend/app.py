@@ -467,6 +467,81 @@ with st.sidebar:
     with col_met3:
         st.metric("✅ Retirados", len(retirados_hoy), delta=None, delta_color="normal")
 
+    # Búsqueda rápida global
+    st.markdown("---")
+    st.markdown("### 🔍 Búsqueda Rápida")
+    busqueda_global = st.text_input(
+        "Buscar paquete",
+        placeholder="Código, destinatario o documento...",
+        key="busqueda_global_sidebar",
+        label_visibility="collapsed"
+    )
+
+    if busqueda_global and len(busqueda_global) >= 2:
+        busqueda_lower = busqueda_global.lower()
+        resultados = []
+
+        for p in st.session_state['historial']:
+            codigo = (p.get('CodigoRetiro') or p.get('codigoRetiro', '')).lower()
+            destinatario = (p.get('DestinatarioNombre') or p.get('destinatarioNombre', '')).lower()
+            numero_doc = (p.get('NumeroDocumento') or p.get('numeroDocumento', '')).lower()
+
+            if (busqueda_lower in codigo or
+                busqueda_lower in destinatario or
+                busqueda_lower in numero_doc):
+                resultados.append(p)
+
+        if resultados:
+            st.success(f"✅ {len(resultados)} resultado(s)")
+            for r in resultados[:3]:  # Mostrar máximo 3
+                codigo = r.get('CodigoRetiro') or r.get('codigoRetiro', 'N/A')
+                dest = r.get('DestinatarioNombre') or r.get('destinatarioNombre', 'N/A')
+                estado = r.get('Estado') or r.get('estado', 'Pendiente')
+                emoji = "✅" if estado == "Retirado" else "📦"
+                st.caption(f"{emoji} **{codigo}**\n{dest[:25]}...")
+            if len(resultados) > 3:
+                st.caption(f"_+{len(resultados)-3} más_")
+        else:
+            st.warning("No se encontraron resultados")
+
+    # Alertas automáticas
+    st.markdown("---")
+    st.markdown("### ⚠️ Alertas")
+
+    # Calcular paquetes urgentes (más de 3 días sin retirar)
+    from datetime import datetime, timedelta
+    hoy_dt = get_chile_time()
+    hace_3_dias = (hoy_dt - timedelta(days=3)).strftime("%Y-%m-%d")
+
+    paquetes_urgentes = []
+    paquetes_ayer = []
+
+    for p in st.session_state['historial']:
+        estado = p.get('Estado') or p.get('estado', 'Pendiente')
+        fecha_rec = p.get('FechaRecepcion') or p.get('fechaRecepcion', '')
+
+        if estado != "Retirado":
+            if fecha_rec < hace_3_dias:
+                paquetes_urgentes.append(p)
+            elif fecha_rec.startswith((hoy_dt - timedelta(days=1)).strftime("%Y-%m-%d")):
+                paquetes_ayer.append(p)
+
+    # Mostrar alertas
+    if paquetes_urgentes:
+        st.error(f"🚨 **{len(paquetes_urgentes)}** paquete(s) urgente(s)")
+        st.caption("Sin retirar hace más de 3 días")
+        for p in paquetes_urgentes[:2]:
+            dest = (p.get('DestinatarioNombre') or p.get('destinatarioNombre', 'N/A'))[:20]
+            st.caption(f"• {dest}...")
+
+    if paquetes_ayer:
+        st.warning(f"⏰ **{len(paquetes_ayer)}** de ayer sin retirar")
+
+    if not paquetes_urgentes and not paquetes_ayer and pendientes_hoy == 0:
+        st.success("✅ Sin alertas")
+    elif not paquetes_urgentes and not paquetes_ayer:
+        st.info("📋 Todo al día")
+
     if paquetes_hoy:
         st.markdown("---")
 
