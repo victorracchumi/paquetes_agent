@@ -71,7 +71,7 @@ st.markdown("""
 if is_authenticated():
     st.success("✅ Ya has iniciado sesión")
     if st.button("Ir a la aplicación"):
-        st.switch_page("pages/1_app.py")
+        st.switch_page("pages/Dashboard.py")
     st.stop()
 
 # Login page content
@@ -111,9 +111,9 @@ if "code" in query_params:
                     st.success(f"✅ Bienvenido, {user_info.get('displayName')}!")
                     st.balloons()
 
-                    # Redirect to app
+                    # Redirect to dashboard
                     st.info("Redirigiendo a la aplicación...")
-                    st.switch_page("pages/1_app.py")
+                    st.switch_page("pages/Dashboard.py")
                 else:
                     st.error("❌ Error al obtener información del usuario")
             else:
