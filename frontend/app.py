@@ -49,12 +49,17 @@ st.markdown("""
     }
 
     .stButton > button:hover {
-        transform: translateY(-3px) !important;
+        transform: translateY(-3px) scale(1.02) !important;
         box-shadow: 0 12px 32px rgba(102, 126, 234, 0.6) !important;
     }
 
     .stButton > button:active {
-        transform: translateY(-1px) !important;
+        transform: translateY(-1px) scale(0.98) !important;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
     }
 
     hr {
@@ -174,6 +179,9 @@ else:
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
                 Autenticación segura mediante Microsoft Azure AD
+            </p>
+            <p style='color: #a0aec0; font-size: 0.7rem; margin-top: 1rem;'>
+                © 2025 Multiaceros S.A. | Versión 1.0.0
             </p>
         </div>
     """, unsafe_allow_html=True)

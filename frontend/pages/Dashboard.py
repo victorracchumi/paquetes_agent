@@ -491,9 +491,31 @@ with st.sidebar:
     st.markdown(f"### 👤 {current_user.get('name', 'Usuario')}")
     st.caption(f"📧 {current_user.get('email', '')}")
 
-    if st.button("🚪 Cerrar Sesión", use_container_width=True):
-        logout()
-        st.rerun()
+    # Show login time
+    if 'login_time' in st.session_state:
+        login_time = st.session_state['login_time']
+        st.caption(f"🕐 Sesión iniciada: {login_time.strftime('%d/%m/%Y %H:%M')}")
+
+    # Logout with confirmation
+    if 'confirm_logout' not in st.session_state:
+        st.session_state['confirm_logout'] = False
+
+    if not st.session_state['confirm_logout']:
+        if st.button("🚪 Cerrar Sesión", use_container_width=True):
+            st.session_state['confirm_logout'] = True
+            st.rerun()
+    else:
+        st.warning("¿Estás seguro que deseas cerrar sesión?")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("✅ Sí", use_container_width=True):
+                st.session_state['confirm_logout'] = False
+                logout()
+                st.rerun()
+        with col2:
+            if st.button("❌ No", use_container_width=True):
+                st.session_state['confirm_logout'] = False
+                st.rerun()
 
     st.markdown("---")
 
