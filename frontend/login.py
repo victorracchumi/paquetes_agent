@@ -2,6 +2,7 @@
 Login page with Microsoft SSO
 """
 import streamlit as st
+import streamlit.components.v1 as components
 import os
 from auth import get_auth_url, get_token_from_code, get_user_info, is_authenticated
 
@@ -136,13 +137,9 @@ else:
 
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.markdown(f"""
-            <script>
-                function loginMicrosoft() {{
-                    window.location.href = "{auth_url}";
-                }}
-            </script>
-            <button onclick="loginMicrosoft()" style="
+        # Use HTML component to ensure same-tab navigation
+        components.html(f"""
+            <button onclick="window.top.location.href='{auth_url}'" style="
                 width: 100%;
                 padding: 0.75rem 1.5rem;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -159,7 +156,7 @@ else:
                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)'">
                 🔑 Iniciar sesión con Microsoft
             </button>
-        """, unsafe_allow_html=True)
+        """, height=70)
 
     st.divider()
 
