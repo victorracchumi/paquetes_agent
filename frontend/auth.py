@@ -5,6 +5,7 @@ import os
 import msal
 import requests
 from typing import Optional, Dict
+from datetime import datetime, timedelta
 
 # Microsoft App Configuration
 CLIENT_ID = os.getenv("CLIENT_ID")
@@ -15,6 +16,9 @@ REDIRECT_URI = os.getenv("REDIRECT_URI", "http://localhost:8501")
 # MSAL Authority
 AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
 SCOPES = ["User.Read"]
+
+# Session timeout (8 hours)
+SESSION_TIMEOUT_HOURS = 8
 
 def get_msal_app():
     """Get MSAL Confidential Client Application"""
@@ -56,9 +60,23 @@ def get_user_info(access_token: str) -> Optional[Dict]:
     return None
 
 def is_authenticated() -> bool:
-    """Check if user is authenticated"""
+    """Check if user is authenticated and session hasn't expired"""
     import streamlit as st
-    return 'user' in st.session_state and st.session_state['user'] is not None
+
+    if 'user' not in st.session_state or st.session_state['user'] is None:
+        return False
+
+    # Check session timeout
+    if 'login_time' in st.session_state:
+        login_time = st.session_state['login_time']
+        elapsed_time = datetime.now() - login_time
+
+        if elapsed_time > timedelta(hours=SESSION_TIMEOUT_HOURS):
+            # Session expired
+            logout()
+            return False
+
+    return True
 
 def get_current_user() -> Optional[Dict]:
     """Get current authenticated user"""
@@ -70,6 +88,10 @@ def logout():
     import streamlit as st
     st.session_state['user'] = None
     st.session_state['authenticated'] = False
+    if 'login_time' in st.session_state:
+        del st.session_state['login_time']
+    if 'last_activity' in st.session_state:
+        del st.session_state['last_activity']
 
 def require_auth():
     """Decorator/function to require authentication"""
