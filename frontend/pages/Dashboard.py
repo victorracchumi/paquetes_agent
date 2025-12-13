@@ -477,10 +477,13 @@ st.markdown("""
 with st.sidebar:
     # Logo
     st.markdown("""
-        <div style='text-align: center; margin-bottom: 1.5rem;'>
-            <img src="https://www.multiaceros.cl/wp-content/uploads/2021/03/logo-multiaceros.png"
-                 alt="Multiaceros Logo"
-                 style='max-width: 200px; width: 100%; height: auto;'/>
+        <div style='text-align: center; margin-bottom: 1.5rem; padding: 1rem 0; background: rgba(99, 102, 241, 0.1); border-radius: 12px;'>
+            <h3 style='font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin: 0; letter-spacing: -0.5px;'>
+                <span style='color: #cbd5e1;'>MULTI</span><span style='color: #f87171;'>ACEROS</span>
+            </h3>
+            <p style='color: #86efac; font-size: 0.65rem; font-weight: 600; margin: 0.25rem 0 0 0; letter-spacing: 0.5px;'>
+                FUERTE EN SERVICIO
+            </p>
         </div>
     """, unsafe_allow_html=True)
 

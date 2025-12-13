@@ -83,11 +83,16 @@ if is_authenticated():
 # Login page content
 st.markdown("""
     <div style='text-align: center; padding: 0 0 1.5rem 0;'>
-        <img src="https://www.multiaceros.cl/wp-content/uploads/2021/03/logo-multiaceros.png"
-             alt="Multiaceros Logo"
-             style='max-width: 280px; width: 100%; height: auto; margin-bottom: 1.5rem;'/>
-        <div style='font-size: 3rem; margin-bottom: 0.5rem;'>📦</div>
-        <h1 style='font-size: 1.75rem; margin: 0.5rem 0; font-weight: 600; color: #1a202c;'>
+        <div style='margin-bottom: 1.5rem;'>
+            <h2 style='font-size: 2.5rem; font-weight: 700; color: #2d3748; margin: 0; letter-spacing: -0.5px;'>
+                <span style='color: #4a5568;'>MULTI</span><span style='color: #e53e3e;'>ACEROS</span>
+            </h2>
+            <p style='color: #48bb78; font-size: 0.85rem; font-weight: 600; margin: 0.25rem 0 0 0; letter-spacing: 1px;'>
+                FUERTE EN SERVICIO
+            </p>
+        </div>
+        <div style='font-size: 3.5rem; margin-bottom: 0.75rem;'>📦</div>
+        <h1 style='font-size: 1.85rem; margin: 0.5rem 0; font-weight: 600; color: #1a202c;'>
             Bienvenido
         </h1>
         <p style='color: #2d3748; font-size: 0.95rem; font-weight: 500; margin-top: 0.5rem;'>
