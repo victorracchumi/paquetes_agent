@@ -10,59 +10,65 @@ st.set_page_config(page_title="Login - Recepción de Paquetes", page_icon="🔐"
 # CSS for login page
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-    :root {
-        --primary-color: #6366f1;
-        --primary-hover: #4f46e5;
-        --bg-dark: #0f172a;
-        --bg-card: #1e293b;
-        --border-color: rgba(148, 163, 184, 0.1);
-        --text-primary: #f1f5f9;
-        --text-secondary: #cbd5e1;
-        --text-muted: #94a3b8;
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
     .stApp {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Poppins', sans-serif;
     }
 
     .main .block-container {
-        background: var(--bg-card);
-        border-radius: 16px;
-        padding: 2.5rem;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-        border: 1px solid var(--border-color);
-        max-width: 500px;
-        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 24px;
+        padding: 3rem 2.5rem;
+        box-shadow: 0 25px 80px rgba(0,0,0,0.25);
+        max-width: 480px;
+        margin-top: 2rem;
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
-    h1 {
-        color: var(--text-primary) !important;
-        font-weight: 700 !important;
-        text-align: center;
-        padding: 1rem 0;
-        text-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+    h1, h2, h3 {
+        color: #2d3748 !important;
+        font-family: 'Poppins', sans-serif !important;
     }
 
     .stButton > button {
-        background: var(--primary-color) !important;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
         color: white !important;
         border: none !important;
-        border-radius: 10px !important;
-        padding: 0.75rem 2rem !important;
+        border-radius: 12px !important;
+        padding: 0.9rem 2rem !important;
         font-weight: 600 !important;
-        font-size: 0.95rem !important;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2) !important;
-        width: 100%;
+        font-size: 1rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4) !important;
+        width: 100% !important;
+        text-transform: none !important;
     }
 
     .stButton > button:hover {
-        background: var(--primary-hover) !important;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3) !important;
+        transform: translateY(-3px) !important;
+        box-shadow: 0 12px 32px rgba(102, 126, 234, 0.6) !important;
+    }
+
+    .stButton > button:active {
+        transform: translateY(-1px) !important;
+    }
+
+    hr {
+        margin: 1.5rem 0;
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+    }
+
+    .stMarkdown p {
+        color: #4a5568;
+    }
+
+    [data-testid="stHeader"] {
+        background: transparent;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -76,9 +82,17 @@ if is_authenticated():
 
 # Login page content
 st.markdown("""
-    <div style='text-align: center; padding: 1rem 0;'>
-        <h1 style='font-size: 2.5rem; margin: 0;'>🔐 Iniciar Sesión</h1>
-        <p style='color: #4299e1; font-size: 1.1rem; font-weight: 500;'>Sistema de Recepción de Paquetes</p>
+    <div style='text-align: center; padding: 0 0 2rem 0;'>
+        <div style='font-size: 4rem; margin-bottom: 1rem;'>📦</div>
+        <h1 style='font-size: 2rem; margin: 0.5rem 0; font-weight: 600; color: #2d3748;'>
+            Bienvenido
+        </h1>
+        <p style='color: #718096; font-size: 1rem; font-weight: 400; margin-top: 0.5rem;'>
+            Sistema de Recepción de Paquetes
+        </p>
+        <p style='color: #a0aec0; font-size: 0.875rem; margin-top: 0.25rem;'>
+            Multiaceros S.A.
+        </p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -124,9 +138,10 @@ if "code" in query_params:
 else:
     # Show login button
     st.markdown("""
-        <div style='text-align: center; padding: 2rem 0;'>
-            <p style='color: var(--text-secondary); margin-bottom: 2rem;'>
-                Inicia sesión con tu cuenta de Microsoft para acceder al sistema
+        <div style='text-align: center; padding: 1.5rem 0 2rem 0;'>
+            <p style='color: #4a5568; font-size: 0.95rem; line-height: 1.6;'>
+                Inicia sesión con tu cuenta corporativa de Microsoft<br/>
+                para acceder al sistema de gestión de paquetes
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -134,25 +149,23 @@ else:
     # Generate auth URL
     auth_url = get_auth_url()
 
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.link_button(
-            "🔑 Iniciar sesión con Microsoft",
-            auth_url,
-            use_container_width=True,
-            type="primary"
-        )
+    st.link_button(
+        "Iniciar sesión con Microsoft",
+        auth_url,
+        use_container_width=True,
+        type="primary"
+    )
 
-    st.divider()
+    st.markdown("<br>", unsafe_allow_html=True)
 
     st.markdown("""
-        <div style='text-align: center;'>
-            <p style='color: var(--text-muted); font-size: 0.875rem;'>
-                🔒 Autenticación segura mediante Microsoft Azure AD
+        <div style='text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(102, 126, 234, 0.15);'>
+            <p style='color: #a0aec0; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;'>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                Autenticación segura mediante Microsoft Azure AD
             </p>
         </div>
     """, unsafe_allow_html=True)
-
-# Footer
-st.divider()
-st.caption("💡 Sistema de Recepción de Paquetes - Multiaceros S.A.")
