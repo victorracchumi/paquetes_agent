@@ -136,11 +136,22 @@ else:
 
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.link_button(
-            "🔑 Iniciar sesión con Microsoft",
-            auth_url,
-            use_container_width=True
-        )
+        st.markdown(f"""
+            <a href="{auth_url}" target="_self" style="
+                display: block;
+                padding: 0.75rem 1.5rem;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                text-align: center;
+                text-decoration: none;
+                border-radius: 0.5rem;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            ">
+                🔑 Iniciar sesión con Microsoft
+            </a>
+        """, unsafe_allow_html=True)
 
     st.divider()
 
