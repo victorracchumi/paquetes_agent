@@ -84,13 +84,13 @@ if is_authenticated():
 st.markdown("""
     <div style='text-align: center; padding: 0 0 2rem 0;'>
         <div style='font-size: 4rem; margin-bottom: 1rem;'>📦</div>
-        <h1 style='font-size: 2rem; margin: 0.5rem 0; font-weight: 600; color: #2d3748;'>
+        <h1 style='font-size: 2rem; margin: 0.5rem 0; font-weight: 600; color: #1a202c;'>
             Bienvenido
         </h1>
-        <p style='color: #718096; font-size: 1rem; font-weight: 400; margin-top: 0.5rem;'>
+        <p style='color: #2d3748; font-size: 1rem; font-weight: 500; margin-top: 0.5rem;'>
             Sistema de Recepción de Paquetes
         </p>
-        <p style='color: #a0aec0; font-size: 0.875rem; margin-top: 0.25rem;'>
+        <p style='color: #4a5568; font-size: 0.875rem; margin-top: 0.25rem; font-weight: 500;'>
             Multiaceros S.A.
         </p>
     </div>
@@ -139,7 +139,7 @@ else:
     # Show login button
     st.markdown("""
         <div style='text-align: center; padding: 1.5rem 0 2rem 0;'>
-            <p style='color: #4a5568; font-size: 0.95rem; line-height: 1.6;'>
+            <p style='color: #2d3748; font-size: 0.95rem; line-height: 1.6; font-weight: 400;'>
                 Inicia sesión con tu cuenta corporativa de Microsoft<br/>
                 para acceder al sistema de gestión de paquetes
             </p>
@@ -160,7 +160,7 @@ else:
 
     st.markdown("""
         <div style='text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid rgba(102, 126, 234, 0.15);'>
-            <p style='color: #a0aec0; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;'>
+            <p style='color: #718096; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;'>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
