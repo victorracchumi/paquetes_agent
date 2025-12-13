@@ -82,16 +82,16 @@ if is_authenticated():
 
 # Login page content
 st.markdown("""
-    <div style='text-align: center; padding: 0 0 2rem 0;'>
-        <div style='font-size: 4rem; margin-bottom: 1rem;'>📦</div>
-        <h1 style='font-size: 2rem; margin: 0.5rem 0; font-weight: 600; color: #1a202c;'>
+    <div style='text-align: center; padding: 0 0 1.5rem 0;'>
+        <img src="https://www.multiaceros.cl/wp-content/uploads/2021/03/logo-multiaceros.png"
+             alt="Multiaceros Logo"
+             style='max-width: 280px; width: 100%; height: auto; margin-bottom: 1.5rem;'/>
+        <div style='font-size: 3rem; margin-bottom: 0.5rem;'>📦</div>
+        <h1 style='font-size: 1.75rem; margin: 0.5rem 0; font-weight: 600; color: #1a202c;'>
             Bienvenido
         </h1>
-        <p style='color: #2d3748; font-size: 1rem; font-weight: 500; margin-top: 0.5rem;'>
+        <p style='color: #2d3748; font-size: 0.95rem; font-weight: 500; margin-top: 0.5rem;'>
             Sistema de Recepción de Paquetes
-        </p>
-        <p style='color: #4a5568; font-size: 0.875rem; margin-top: 0.25rem; font-weight: 500;'>
-            Multiaceros S.A.
         </p>
     </div>
 """, unsafe_allow_html=True)

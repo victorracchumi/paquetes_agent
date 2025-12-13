@@ -475,6 +475,15 @@ st.markdown("""
 
 # Sidebar con información y estadísticas
 with st.sidebar:
+    # Logo
+    st.markdown("""
+        <div style='text-align: center; margin-bottom: 1.5rem;'>
+            <img src="https://www.multiaceros.cl/wp-content/uploads/2021/03/logo-multiaceros.png"
+                 alt="Multiaceros Logo"
+                 style='max-width: 200px; width: 100%; height: auto;'/>
+        </div>
+    """, unsafe_allow_html=True)
+
     # User info and logout
     st.markdown(f"### 👤 {current_user.get('name', 'Usuario')}")
     st.caption(f"📧 {current_user.get('email', '')}")
