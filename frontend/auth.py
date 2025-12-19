@@ -5,9 +5,12 @@ import os
 import msal
 import requests
 import json
-import base64
 from typing import Optional, Dict
 from datetime import datetime, timedelta
+try:
+    import extra_streamlit_components as stx
+except ImportError:
+    stx = None
 
 # Microsoft App Configuration
 CLIENT_ID = os.getenv("CLIENT_ID")
@@ -61,10 +64,19 @@ def get_user_info(access_token: str) -> Optional[Dict]:
         return response.json()
     return None
 
+def get_cookie_manager():
+    """Get cookie manager instance"""
+    if stx is None:
+        return None
+    return stx.CookieManager()
+
 def save_session_to_cookie(user_data: Dict):
     """Save session data to browser cookie"""
     import streamlit as st
-    from streamlit.components.v1 import html
+
+    cookie_manager = get_cookie_manager()
+    if cookie_manager is None:
+        return
 
     session_data = {
         'user': user_data,
@@ -74,44 +86,22 @@ def save_session_to_cookie(user_data: Dict):
 
     # Encode session data
     session_json = json.dumps(session_data)
-    session_b64 = base64.b64encode(session_json.encode()).decode()
 
-    # Set cookie via JavaScript (expires in 8 hours)
-    cookie_script = f"""
-        <script>
-            const date = new Date();
-            date.setTime(date.getTime() + (8 * 60 * 60 * 1000)); // 8 hours
-            document.cookie = "multiaceros_session={session_b64}; expires=" + date.toUTCString() + "; path=/; SameSite=Lax";
-        </script>
-    """
-    html(cookie_script, height=0)
+    # Set cookie (expires in 8 hours = 28800 seconds)
+    cookie_manager.set('multiaceros_session', session_json, max_age=28800)
 
 def load_session_from_cookie():
     """Load session data from browser cookie"""
     import streamlit as st
-    from streamlit.components.v1 import html
 
-    # Get cookie via JavaScript
-    cookie_script = """
-        <script>
-            function getCookie(name) {
-                const value = `; ${document.cookie}`;
-                const parts = value.split(`; ${name}=`);
-                if (parts.length === 2) return parts.pop().split(';').shift();
-            }
-            const session = getCookie('multiaceros_session');
-            if (session) {
-                window.parent.postMessage({type: 'streamlit:setComponentValue', value: session}, '*');
-            }
-        </script>
-    """
+    cookie_manager = get_cookie_manager()
+    if cookie_manager is None:
+        return False
 
-    result = html(cookie_script, height=0)
+    try:
+        session_json = cookie_manager.get('multiaceros_session')
 
-    if result:
-        try:
-            # Decode session data
-            session_json = base64.b64decode(result).decode()
+        if session_json:
             session_data = json.loads(session_json)
 
             # Check if session is still valid
@@ -124,8 +114,8 @@ def load_session_from_cookie():
                 st.session_state['authenticated'] = True
                 st.session_state['login_time'] = login_time
                 return True
-        except Exception as e:
-            pass
+    except Exception as e:
+        pass
 
     return False
 
@@ -159,7 +149,6 @@ def get_current_user() -> Optional[Dict]:
 def logout():
     """Clear session and logout user"""
     import streamlit as st
-    from streamlit.components.v1 import html
 
     st.session_state['user'] = None
     st.session_state['authenticated'] = False
@@ -169,12 +158,9 @@ def logout():
         del st.session_state['last_activity']
 
     # Clear cookie
-    clear_cookie_script = """
-        <script>
-            document.cookie = "multiaceros_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        </script>
-    """
-    html(clear_cookie_script, height=0)
+    cookie_manager = get_cookie_manager()
+    if cookie_manager is not None:
+        cookie_manager.delete('multiaceros_session')
 
 def require_auth():
     """Decorator/function to require authentication"""
