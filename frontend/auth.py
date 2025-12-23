@@ -65,43 +65,55 @@ def get_user_info(access_token: str) -> Optional[Dict]:
     return None
 
 def get_cookie_manager():
-    """Get cookie manager instance"""
+    """Get cookie manager instance - cached in session state"""
+    import streamlit as st
+
     if stx is None:
         return None
-    return stx.CookieManager()
+
+    # Cache cookie manager in session state to avoid re-initialization
+    if 'cookie_manager' not in st.session_state:
+        st.session_state['cookie_manager'] = stx.CookieManager()
+
+    return st.session_state['cookie_manager']
 
 def save_session_to_cookie(user_data: Dict):
     """Save session data to browser cookie"""
     import streamlit as st
 
-    cookie_manager = get_cookie_manager()
-    if cookie_manager is None:
-        return
+    try:
+        cookie_manager = get_cookie_manager()
+        if cookie_manager is None:
+            return
 
-    session_data = {
-        'user': user_data,
-        'login_time': datetime.now().isoformat(),
-        'authenticated': True
-    }
+        session_data = {
+            'user': user_data,
+            'login_time': datetime.now().isoformat(),
+            'authenticated': True
+        }
 
-    # Encode session data
-    session_json = json.dumps(session_data)
+        # Encode session data
+        session_json = json.dumps(session_data)
 
-    # Set cookie (expires in 8 hours = 28800 seconds)
-    cookie_manager.set('multiaceros_session', session_json, max_age=28800)
+        # Set cookie (expires in 8 hours = 28800 seconds)
+        cookie_manager.set('multiaceros_session', session_json, max_age=28800)
+    except Exception as e:
+        pass  # Silent fail if cookies not available
 
 def load_session_from_cookie():
     """Load session data from browser cookie"""
     import streamlit as st
 
-    cookie_manager = get_cookie_manager()
-    if cookie_manager is None:
-        return False
-
     try:
-        session_json = cookie_manager.get('multiaceros_session')
+        cookie_manager = get_cookie_manager()
+        if cookie_manager is None:
+            return False
 
-        if session_json:
+        # Get all cookies
+        cookies = cookie_manager.get_all()
+
+        if cookies and 'multiaceros_session' in cookies:
+            session_json = cookies['multiaceros_session']
             session_data = json.loads(session_json)
 
             # Check if session is still valid
@@ -115,7 +127,7 @@ def load_session_from_cookie():
                 st.session_state['login_time'] = login_time
                 return True
     except Exception as e:
-        pass
+        pass  # Silent fail if cookies not available
 
     return False
 
