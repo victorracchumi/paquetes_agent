@@ -4,7 +4,7 @@ Login page with Microsoft SSO
 import streamlit as st
 import os
 from datetime import datetime
-from auth import get_auth_url, get_token_from_code, get_user_info, is_authenticated, save_session_to_cookie
+from auth import get_auth_url, get_token_from_code, get_user_info, is_authenticated
 
 st.set_page_config(page_title="Login - Recepción de Paquetes", page_icon="🔐", layout="centered")
 
@@ -138,9 +138,6 @@ if "code" in query_params:
                     st.session_state['authenticated'] = True
                     st.session_state['login_time'] = datetime.now()
                     st.session_state['last_activity'] = datetime.now()
-
-                    # Save session to cookie for persistence
-                    save_session_to_cookie(user_data)
 
                     # Redirect to dashboard immediately
                     st.switch_page("pages/Dashboard.py")

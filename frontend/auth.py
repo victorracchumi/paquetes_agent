@@ -135,11 +135,9 @@ def is_authenticated() -> bool:
     """Check if user is authenticated and session hasn't expired"""
     import streamlit as st
 
-    # First check if we have session in streamlit
+    # Check if we have session in streamlit
     if 'user' not in st.session_state or st.session_state['user'] is None:
-        # Try to restore from cookie
-        if not load_session_from_cookie():
-            return False
+        return False
 
     # Check session timeout
     if 'login_time' in st.session_state:
