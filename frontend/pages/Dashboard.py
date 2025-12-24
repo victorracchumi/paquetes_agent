@@ -246,13 +246,25 @@ st.markdown("""
         outline: none !important;
     }
 
-    /* Eliminar todos los bordes blancos */
+    /* Eliminar todos los bordes y fondos blancos */
     .stSelectbox > div > div,
     .stSelectbox [data-baseweb="select"],
     .stDateInput > div > div,
     input, select, textarea {
         border: none !important;
         outline: none !important;
+        background: transparent !important;
+    }
+
+    /* Forzar fondo oscuro en todos los inputs */
+    input[type="text"],
+    input[type="email"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+        background: rgba(15, 23, 42, 0.5) !important;
+        color: var(--text-primary) !important;
     }
 
     /* Selectbox específico */
